@@ -10,15 +10,6 @@ app.post('/fotos', async (req, res) => {
     if(req.files){
         let photo = req.files.photo;
 
-        const outputBuffer = await convert({
-            buffer: photo.data, // the HEIC file buffer
-            format: 'JPEG',      // output format
-            quality: 1           // the jpeg compression quality, between 0 and 1
-        });
-        
-        let photo_name = new Date().getTime();
-        await promisify(fs.writeFile)(path.join(__dirname, '/transformadas/') + photo_name + '.jpg', outputBuffer);
-
         console.log("foto recibida: ", photo);
 
         if(!photo.mimetype){
@@ -26,6 +17,18 @@ app.post('/fotos', async (req, res) => {
                 error: "La foto no tiene un mimetype"
             });
         }else {
+            
+            let photo_name = new Date().getTime();
+            if(photo.mimetype == "image/heic" || photo.mimetype == "image/heif"){
+                const outputBuffer = await convert({
+                    buffer: photo.data, // the HEIC file buffer
+                    format: 'JPEG',      // output format
+                    quality: 1           // the jpeg compression quality, between 0 and 1
+                });
+                
+                await promisify(fs.writeFile)(path.join(__dirname, '/transformadas/') + photo_name + '.jpg', outputBuffer);
+            }
+
             let ext = photo.mimetype.split('/')[1];
             ext = ext.split("+")[0];
             let urlPhoto = path.join(__dirname, '/fotos/') + photo_name + '.' + ext;
