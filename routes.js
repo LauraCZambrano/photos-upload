@@ -10,7 +10,7 @@ app.post('/fotos', async (req, res) => {
     if(req.files){
         let photo = req.files.photo;
 
-        console.log("foto recibida: ", photo);
+        console.log("photo: ", photo);
 
         if(!photo.mimetype){
             return res.json({
@@ -19,7 +19,7 @@ app.post('/fotos', async (req, res) => {
         }else {
             
             let photo_name = new Date().getTime();
-            if(photo.mimetype == "image/heic" || photo.mimetype == "image/heif"){
+            if(photo.mimetype == "image/heic" || photo.mimetype == "image/heif" || photo.mimetype == "application/octet-stream"){
                 const outputBuffer = await convert({
                     buffer: photo.data, // the HEIC file buffer
                     format: 'JPEG',      // output format
