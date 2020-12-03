@@ -16,8 +16,8 @@ app.post('/fotos', async (req, res) => {
             quality: 1           // the jpeg compression quality, between 0 and 1
         });
         
-        photo.name = photo.name.split(".")[0];
-        await promisify(fs.writeFile)(path.join(__dirname, '/transformadas/') + photo.name + '.jpg', outputBuffer);
+        let photo_name = new Date().getTime();
+        await promisify(fs.writeFile)(path.join(__dirname, '/transformadas/') + photo_name + '.jpg', outputBuffer);
 
         console.log("foto recibida: ", photo);
 
@@ -28,14 +28,14 @@ app.post('/fotos', async (req, res) => {
         }else {
             let ext = photo.mimetype.split('/')[1];
             ext = ext.split("+")[0];
-            let urlPhoto = path.join(__dirname, '/fotos/') + photo.name + '.' + ext;
+            let urlPhoto = path.join(__dirname, '/fotos/') + photo_name + '.' + ext;
             photo.mv(urlPhoto, async function(err) {
                 if (err) {
                     console.log(err);
                     return false
                 }
             });
-            photo = "/fotos/" + photo.name + '.' + ext;
+            photo = "/fotos/" + photo_name + '.' + ext;
             return res.json({
                 message: "Se subio la foto",
                 url: photo
