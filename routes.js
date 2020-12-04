@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const { promisify } = require('util');
 const fs = require('fs');
+const FileType = require('file-type');
 const convert = require('heic-convert');
 const app = express();
 
@@ -13,13 +14,16 @@ app.post('/fotos', async (req, res) => {
         console.log("photo: ", photo);
 
         if(!photo.mimetype){
-            return res.json({
+            return res.status(400).json({
                 error: "La foto no tiene un mimetype"
             });
         }else {
             
             let photo_name = new Date().getTime();
-            if(photo.mimetype == "image/heic" || photo.mimetype == "image/heif" || photo.mimetype == "application/octet-stream"){
+            let extension = await FileType.fromBuffer(photo.data);
+            let ext = extension.ext;
+            console.log("Extension: ", extension);
+            if(ext == 'heic' || ext == 'heif'){
                 const outputBuffer = await convert({
                     buffer: photo.data, // the HEIC file buffer
                     format: 'JPEG',      // output format
@@ -27,9 +31,10 @@ app.post('/fotos', async (req, res) => {
                 });
                 
                 await promisify(fs.writeFile)(path.join(__dirname, '/transformadas/') + photo_name + '.jpg', outputBuffer);
+            } else {
+                ext = photo.mimetype.split('/')[1];
             }
 
-            let ext = photo.mimetype.split('/')[1];
             ext = ext.split("+")[0];
             let urlPhoto = path.join(__dirname, '/fotos/') + photo_name + '.' + ext;
             photo.mv(urlPhoto, async function(err) {
@@ -46,7 +51,7 @@ app.post('/fotos', async (req, res) => {
         }
 
     } else {
-        return res.json({
+        return res.status(400).json({
             error: "No se recibio ninguna foto"
         });
     }
